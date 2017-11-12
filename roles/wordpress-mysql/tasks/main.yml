@@ -1,0 +1,34 @@
+---
+- name: Install MYSQL server
+  apt:
+    name: mysql-server
+    state: present
+    install_recommends: yes
+
+- name: Configure bind address for MYSQL
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^bind-address'
+    line: 'bind-address = {{ mysql_server }}'
+  notify:
+    - restart mysql
+
+- name: Install MYSQL Python
+  apt:
+    name: python-mysqldb
+    state: present
+
+- name: Configure MySQL database
+  mysql_db:
+    name: "{{ mysql_db }}"
+    state: present
+
+- name: Configure MYSQL user
+  mysql_user:
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_password }}"
+    priv: '*.*:ALL'
+    host: '%'
+    state: present
+  tags:
+    - mysqluser

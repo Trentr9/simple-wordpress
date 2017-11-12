@@ -1,0 +1,60 @@
+---
+- name: Add nginx repo
+  apt_repository:
+    repo: 'ppa:nginx/stable'
+
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Install PHP-FPM
+  apt:
+    name: php-fpm
+    install_recommends: yes
+
+- name: Configure php.ini
+  lineinfile:
+    path: '/etc/php/7.0/fpm/php.ini'
+    regexp: '^;cgi.fix_pathinfo'
+    line: 'cgi.fix_pathinfo=0'
+  notify: 
+  - restart php fpm
+
+- name: Configure nginx to use php fpm
+  copy:
+    src: roles/wordpress-http/files/nginx-sites-available-defaults
+    dest: /etc/nginx/sites-available/default
+  notify:
+  - reload nginx
+
+- name: Installing mysql client
+  apt:
+    name: php7.0-mysql
+    state: present
+
+- name: Clone wordpress repo
+  git:
+    repo: 'https://github.com/WordPress/WordPress.git'
+    dest: /var/www/html/wordpress
+    accept_hostkey: yes
+    
+- name: Assigning permissions to the wordpress directory
+  file:
+    path: /var/www/html/wordpress
+    owner: www-data
+    group: www-data
+  notify:
+    - reload nginx
+ 
+- name: Generating secure Wordpress secrets
+  uri:
+    url: https://api.wordpress.org/secret-key/1.1/salt/
+    return_content: yes
+  register: wordpress_secrets
+
+- name: Setting up wp-config file
+  template:
+    src: roles/wordpress-http/templates/wp-config.php
+    dest: /var/www/html/wordpress/wp-config.php

@@ -1,0 +1,16 @@
+---
+- hosts: all
+  gather_facts: False
+
+  pre_tasks:
+    - name: 'Install Python 2'
+      raw: apt-get -y update && apt-get -y install python
+      become_user: roo
+
+- hosts: wordpress-http
+  roles:
+    - wordpress-http
+
+- hosts: wordpress-mysql
+  roles:
+    - wordpress-mysql

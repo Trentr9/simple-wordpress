@@ -1,0 +1,10 @@
+[all:vars]
+mysql_server=localhost
+mysql_user=wordpress
+mysql_password=sup3rs3r47P4ssw0rd!
+mysql_db=wordpress
+
+[wordpress-http]
+
+[wordpress-mysql]
+
